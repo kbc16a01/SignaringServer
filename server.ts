@@ -74,23 +74,33 @@ io.on('connect', (socket) => {
     socket.emit('rooms', {room: room_name});
   // socket.emit('rooms', 'rooms');
   });
-  socket.on('enter', function(e) {
+  socket.on('enter', function(ip, pass) {
     console.log('----------------enter-----------------------');
-    var host = Object.keys(io.sockets.adapter.rooms[e].sockets)[0];
-    var room_key = Object.keys(io.sockets.adapter.sids[host])[2];
-    console.log('room内の人');
-    console.log(io.sockets.adapter.rooms[e]);
-    console.log('ホスト');
-    console.log(host);
-    console.log(e);
-    console.log('ルームキー: ', room_key);
-    if(true) { // もしパスワードがなかったら
-      socket.join(e, function() {
-        var host = Object.keys(io.sockets.adapter.rooms[e].sockets)[0];
-        io.sockets.in(e).emit('hello', socket.id);
-        socket.to(host).emit('enter', socket.id);
-        console.log('ルーム名', e);
-      });
+    try {
+      var host = Object.keys(io.sockets.adapter.rooms[ip].sockets)[0];
+      var room_key = Object.keys(io.sockets.adapter.sids[host])[2];
+      console.log('room内の人');
+      console.log(io.sockets.adapter.rooms[ip]);
+      console.log('ホスト');
+      console.log(host);
+      console.log(ip);
+      console.log('ルームキー: ', room_key);
+
+      if (pass === room_key) {
+        console.log('key is ok!!');
+        socket.join(ip, function() {
+        // var host = Object.keys(io.sockets.adapter.rooms[ip].sockets)[0];
+        // io.sockets.in(ip).emit('hello', socket.id);
+          socket.emit('hello', ip);
+          socket.to(host).emit('enter', socket.id);
+          console.log('ルーム名', ip);
+        });
+      } else if (pass !== room_key) {
+        console.log('key is default');
+        socket.emit('key_default');
+      }
+    } catch(error) {
+        console.log(error);
     }
   });
   socket.on('test', function() {
